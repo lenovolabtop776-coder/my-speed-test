@@ -208,7 +208,26 @@ const button = document.getElementById('startBtn');
 const status = document.getElementById('status');
 
 const engine = new SpeedTest({
-    autoStart: false
+    autoStart: false,
+
+    bandwidthFinishRequestDuration: 500,
+
+    abortTestDuration: 20000,
+
+    measureDownloadLoadedLatency: false,
+    measureUploadLoadedLatency: false,
+
+    measurements: [
+        { type: 'latency', numPackets: 5 },
+
+        { type: 'download', bytes: 500000, count: 2 },
+        { type: 'download', bytes: 2000000, count: 2 },
+
+        { type: 'upload', bytes: 500000, count: 2 },
+        { type: 'upload', bytes: 2000000, count: 2 },
+
+        { type: 'latency', numPackets: 5 }
+    ]
 });
 
 function show(id, value, unit) {
