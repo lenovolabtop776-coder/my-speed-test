@@ -160,35 +160,38 @@ footer {
 
     <section class="speed-box">
 
-        <div class="speed-circle">
-            <strong>--</strong>
-            <small>Mbps</small>
-        </div>
+       <div class="speed-circle">
+    <strong id="mainSpeed">--</strong>
+    <small>Mbps</small>
+    </div>
 
-        <button disabled>سيتم تفعيل الاختبار قريباً</button>
+        <button id="startBtn">ابدأ اختبار السرعة</button>
 
-        <div class="results">
+          <p id="status">اضغط لبدء اختبار سرعة الإنترنت</p>
+
+         <div class="results">
 
             <div class="result">
                 <h3>Download</h3>
-                <p>-- Mbps</p>
+                <p id="download">-- Mbps</p>
             </div>
 
             <div class="result">
                 <h3>Upload</h3>
-                <p>-- Mbps</p>
+                <p id="upload">-- Mbps</p>
             </div>
 
             <div class="result">
                 <h3>Ping</h3>
-                <p>-- ms</p>
+                <p id="ping">-- ms</p>
             </div>
 
             <div class="result">
                 <h3>Jitter</h3>
-                <p>-- ms</p>
+                <p id="jitter">-- ms</p>
             </div>
 
+</div>
         </div>
 
     </section>
@@ -198,6 +201,85 @@ footer {
     </footer>
 
 </main>
+    <script type="module">
+import SpeedTest from 'https://cdn.skypack.dev/@cloudflare/speedtest';
+
+const button = document.getElementById('startBtn');
+const status = document.getElementById('status');
+
+const engine = new SpeedTest({
+    autoStart: false
+});
+
+function show(id, value, unit) {
+    document.getElementById(id).textContent =
+        value + ' ' + unit;
+}
+
+function formatSpeed(value) {
+    if (!Number.isFinite(value)) return '--';
+    return (value / 1000000).toFixed(2);
+}
+
+function formatTime(value) {
+    if (!Number.isFinite(value)) return '--';
+    return value.toFixed(1);
+}
+
+engine.onRunningChange = (running) => {
+    button.disabled = running;
+
+    button.textContent = running
+        ? 'جاري الاختبار...'
+        : 'ابدأ اختبار السرعة';
+
+    status.textContent = running
+        ? 'يرجى الانتظار، نقيس سرعة اتصالك بالإنترنت'
+        : 'اكتمل الاختبار';
+};
+
+engine.onFinish = (results) => {
+
+    const download = results.getDownloadBandwidth();
+    const upload = results.getUploadBandwidth();
+
+    const ping = results.getUnloadedLatency();
+    const jitter = results.getUnloadedJitter();
+
+    show('download', formatSpeed(download), 'Mbps');
+    show('upload', formatSpeed(upload), 'Mbps');
+    show('ping', formatTime(ping), 'ms');
+    show('jitter', formatTime(jitter), 'ms');
+
+    show('mainSpeed', formatSpeed(download), '');
+
+    status.textContent = 'اكتمل اختبار سرعة الإنترنت بنجاح';
+};
+
+engine.onError = (error, statusCode) => {
+    console.error('Speed Test Error:', error, statusCode);
+
+    status.textContent =
+        'حدث خطأ في الاتصال بخادم الاختبار. حاول مجدداً.';
+
+};
+
+button.addEventListener('click', () => {
+
+    if (engine.isRunning) return;
+
+    show('mainSpeed', '--', '');
+    show('download', '--', 'Mbps');
+    show('upload', '--', 'Mbps');
+    show('ping', '--', 'ms');
+    show('jitter', '--', 'ms');
+
+    status.textContent = 'جارٍ الاتصال بخادم الاختبار...';
+
+    engine.play();
+});
+
+</script>
 
 </body>
 </html>
